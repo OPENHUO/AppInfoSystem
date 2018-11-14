@@ -116,9 +116,7 @@
 								</div>
 							</div>
 						</li>
-						<div class="form-group">
-							<button type="submit" class="btn btn-success">查询</button>
-						</div>
+						<li><button type="submit" class="btn btn-primary"> 查 &nbsp;&nbsp;&nbsp;&nbsp;询 </button></li>
 					</ul>
 				</form>
 			</div>

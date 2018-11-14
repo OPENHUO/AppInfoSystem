@@ -46,5 +46,13 @@ public interface AppInfoService {
 	 * @return
 	 * @throws Exception
 	 */
-	
+	public AppInfo getAppInfo(Integer id,String APKName)throws Exception;
+
+	/**
+	 * 新增app
+	 * @param appInfo
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean add(AppInfo appInfo) throws Exception;
 }
