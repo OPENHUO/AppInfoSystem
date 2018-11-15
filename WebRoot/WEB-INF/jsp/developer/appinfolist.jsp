@@ -137,7 +137,7 @@
 					<th>状态</th>
 					<th>下载次数</th>
 					<th>最新版本号</th>
-					<th>操作</th>
+					<th style="width:130px">操作</th>
 				</tr>
 			</thead>
 

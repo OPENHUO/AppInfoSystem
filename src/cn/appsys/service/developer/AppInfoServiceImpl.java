@@ -17,7 +17,15 @@ public class AppInfoServiceImpl implements AppInfoService {
 	private AppInfoMapper mapper;
 //	@Resource
 //	private AppVersionMapper appVersionMapper;
-	
+	@Override
+	public boolean deleteAppLogo(Integer id) throws Exception {
+		// TODO Auto-generated method stub
+		boolean flag = false;
+		if(mapper.deleteAppLogo(id) > 0){
+			flag = true;
+		}
+		return flag;
+	}
 	
 
 	@Override
@@ -49,6 +57,16 @@ public class AppInfoServiceImpl implements AppInfoService {
 		// TODO Auto-generated method stub
 		boolean flag = false;
 		if(mapper.add(appInfo) > 0){
+			flag = true;
+		}
+		return flag;
+	}
+
+	@Override
+	public boolean modify(AppInfo appInfo) throws Exception {
+		// TODO Auto-generated method stub
+		boolean flag = false;
+		if(mapper.modify(appInfo) > 0){
 			flag = true;
 		}
 		return flag;
