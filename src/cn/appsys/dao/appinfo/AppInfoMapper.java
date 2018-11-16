@@ -41,4 +41,6 @@ public interface AppInfoMapper {
 	 * @throws Exception
 	 */
 	public int updateVersionId(@Param(value="versionId")Integer versionId,@Param(value="id")Integer appId)throws Exception;
+	public int deleteAppInfoById(@Param(value="id")Integer delId)throws Exception;
+
 }

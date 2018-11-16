@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +35,7 @@ import cn.appsys.service.developer.AppVersionService;
 import cn.appsys.service.developer.DataDictionaryService;
 import cn.appsys.tools.Constants;
 import cn.appsys.tools.PageSupport;
+
 
 @Controller
 @RequestMapping(value="/dev/flatform/app")
@@ -480,5 +482,151 @@ public class AppInfoController {
 			e.printStackTrace();
 		}
 		return "redirect:/dev/flatform/app/appversionadd?id="+appVersion.getAppId();
+	}
+	/**
+	 * 修改最新的appVersion信息（跳转到修改appVersion页面）
+	 * @param versionId
+	 * @param appId
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping(value="/appversionmodify",method=RequestMethod.GET)
+	public String modifyAppVersion(@RequestParam("vid") String versionId,
+									@RequestParam("aid") String appId,
+									@RequestParam(value="error",required= false)String fileUploadError,
+									Model model){
+		AppVersion appVersion = null;
+		List<AppVersion> appVersionList = null;
+		if(null != fileUploadError && fileUploadError.equals("error1")){
+			fileUploadError = Constants.FILEUPLOAD_ERROR_1;
+		}else if(null != fileUploadError && fileUploadError.equals("error2")){
+			fileUploadError	= Constants.FILEUPLOAD_ERROR_2;
+		}else if(null != fileUploadError && fileUploadError.equals("error3")){
+			fileUploadError = Constants.FILEUPLOAD_ERROR_3;
+		}
+		try {
+			appVersion = appVersionService.getAppVersionById(Integer.parseInt(versionId));
+			appVersionList = appVersionService.getAppVersionList(Integer.parseInt(appId));
+		}catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		model.addAttribute(appVersion);
+		model.addAttribute("appVersionList",appVersionList);
+		model.addAttribute("fileUploadError",fileUploadError);
+		return "developer/appversionmodify";
+	}
+	/**
+	 * 保存修改后的appVersion
+	 * @param appVersion
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/appversionmodifysave",method=RequestMethod.POST)
+	public String modifyAppVersionSave(AppVersion appVersion,HttpSession session,HttpServletRequest request,
+					@RequestParam(value="attach",required= false) MultipartFile attach){	
+		
+		String downloadLink =  null;
+		String apkLocPath = null;
+		String apkFileName = null;
+		if(!attach.isEmpty()){
+			String path = request.getSession().getServletContext().getRealPath("statics"+File.separator+"uploadfiles");
+			logger.info("uploadFile path: " + path);
+			String oldFileName = attach.getOriginalFilename();//原文件名
+			String prefix = FilenameUtils.getExtension(oldFileName);//原文件后缀
+			if(prefix.equalsIgnoreCase("apk")){//apk文件命名：apk名称+版本号+.apk
+				 String apkName = null;
+				 try {
+					apkName = appInfoService.getAppInfo(appVersion.getAppId(),null).getAPKName();
+				 } catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				 }
+				 if(apkName == null || "".equals(apkName)){
+					 return "redirect:/dev/flatform/app/appversionmodify?vid="+appVersion.getId()
+							 +"&aid="+appVersion.getAppId()
+							 +"&error=error1";
+				 }
+				 apkFileName = apkName + "-" +appVersion.getVersionNo() + ".apk";
+				 File targetFile = new File(path,apkFileName);
+				 if(!targetFile.exists()){
+					 targetFile.mkdirs();
+				 }
+				 try {
+					attach.transferTo(targetFile);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return "redirect:/dev/flatform/app/appversionmodify?vid="+appVersion.getId()
+							 +"&aid="+appVersion.getAppId()
+							 +"&error=error2";
+				} 
+				downloadLink = request.getContextPath()+"/statics/uploadfiles/"+apkFileName;
+				apkLocPath = path+File.separator+apkFileName;
+			}else{
+				return "redirect:/dev/flatform/app/appversionmodify?vid="+appVersion.getId()
+						 +"&aid="+appVersion.getAppId()
+						 +"&error=error3";
+			}
+		}
+		appVersion.setModifyBy(((DevUser)session.getAttribute(Constants.DEV_USER_SESSION)).getId());
+		appVersion.setModifyDate(new Date());
+		appVersion.setDownloadLink(downloadLink);
+		appVersion.setApkLocPath(apkLocPath);
+		appVersion.setApkFileName(apkFileName);
+		try {
+			if(appVersionService.modify(appVersion)){
+				return "redirect:/dev/flatform/app/list";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "developer/appversionmodify";
+	}
+	/**
+	 * 查看app信息，包括app基本信息和版本信息列表（跳转到查看页面）
+	 * @param appInfo
+	 * @return
+	 */
+	@RequestMapping(value="/appview/{id}",method=RequestMethod.GET)
+	public String view(@PathVariable String id,Model model){
+		AppInfo appInfo = null;
+		List<AppVersion> appVersionList = null;
+		try {
+			appInfo = appInfoService.getAppInfo(Integer.parseInt(id),null);
+			appVersionList = appVersionService.getAppVersionList(Integer.parseInt(id));
+		}catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		model.addAttribute("appVersionList", appVersionList);
+		model.addAttribute(appInfo);
+		return "developer/appinfoview";
+	}
+	
+	
+	@RequestMapping(value="/delapp.json")
+	@ResponseBody
+	public Object delApp(@RequestParam String id){
+		logger.debug("delApp appId===================== "+id);
+		HashMap<String, String> resultMap = new HashMap<String, String>();
+		if(StringUtils.isNullOrEmpty(id)){
+			resultMap.put("delResult", "notexist");
+		}else{
+			try {
+				if(appInfoService.appsysdeleteAppById(Integer.parseInt(id)))
+					resultMap.put("delResult", "true");
+				else
+					resultMap.put("delResult", "false");
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return JSONArray.toJSONString(resultMap);
 	}
 }
