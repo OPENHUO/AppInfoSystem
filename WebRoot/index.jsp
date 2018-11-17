@@ -41,7 +41,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
               <h1>App信息管理系统</h1>
               
               <div>
-                <a class="btn btn-link" href="index.html">后台管理系统入口</a>
+                <a class="btn btn-link" href="manager/login">后台管理系统入口</a>
                 </div>
                 <div>
                 <a class="btn btn-link" href="dev/login">开发者平台入口</a>

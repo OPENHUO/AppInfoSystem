@@ -76,4 +76,12 @@ public interface AppInfoService {
 	 * @throws Exception
 	 */
 	public boolean appsysdeleteAppById(Integer id)throws Exception;
+	/**
+	 * update Sale Status By AppId and Operator
+	 * @param appId
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean appsysUpdateSaleStatusByAppId(AppInfo appInfo) throws Exception;
+
 }

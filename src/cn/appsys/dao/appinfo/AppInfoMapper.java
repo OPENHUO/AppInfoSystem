@@ -42,5 +42,13 @@ public interface AppInfoMapper {
 	 */
 	public int updateVersionId(@Param(value="versionId")Integer versionId,@Param(value="id")Integer appId)throws Exception;
 	public int deleteAppInfoById(@Param(value="id")Integer delId)throws Exception;
+	/*
+	 * 更新app状态
+	 * @param status
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public int updateSatus(@Param(value="status")Integer status,@Param(value="id")Integer id)throws Exception;
 
 }
